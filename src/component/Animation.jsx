@@ -27,8 +27,8 @@ const Animation = ({
   const frameRate = 25;
   const frameTime = 1 / frameRate;
   const _ballDiameter = 2 * _ballRadius;
-  const maxX = _fieldWidth - _ballDiameter - 4; // ลบเส้นขอบ 4px
-  const maxY = _fieldHeight - _ballDiameter - 4;
+  const maxX = _fieldWidth - _ballDiameter - 5; 
+  const maxY = _fieldHeight - _ballDiameter - 5;
 
   // state
   const [ballType, setBallType] = useState("none");
@@ -82,64 +82,39 @@ const Animation = ({
   }, [ballType]);
 
   const calculateNextFrame = () => {
-    // calculate next position
-    let newX = x;
-    let newMoveLeft = moveLeft;
-    let newY = y;
-    let newMoveDown = moveDown;
-
     // x axis
     if (moveLeft) {
       // ->
-      newX = x + xVelocity / frameRate;
-      if (newX >= maxX) {
-        newX = 2 * maxX - newX;
-        newMoveLeft = false;
+      setX(() => x + xVelocity / frameRate);
+      if (x >= maxX) {
+        setX((x) => maxX - (x - maxX));
+        setMoveLeft(() => false);
       }
     } else {
       // <-
-      newX = x - xVelocity / frameRate;
-      if (newX <= 0) {
-        newX = -newX;
-        newMoveLeft = true;
+      setX((x) => x - xVelocity / frameRate);
+      if (x <= 0) {
+        setX((x) => -x);
+        setMoveLeft(() => true);
       }
     }
-
-    // Clamp position
-    if (newX > maxX) newX = maxX;
-    if (newX < 0) newX = 0;
 
     // y axis
     if (moveDown) {
       // down
-      newY = y + yVelocity / frameRate;
-      if (newY >= maxY) {
-        newY = 2 * maxY - newY;
-        newMoveDown = false;
+      setY(() => y + yVelocity / frameRate);
+      if (y >= maxY) {
+        setY((y) => maxY - (y - maxY));
+        setMoveDown(() => false);
       }
     } else {
       // up
-      newY = y - yVelocity / frameRate;
-      if (newY <= 0) {
-        newY = -newY;
-        newMoveDown = true;
+      setY((y) => y - yVelocity / frameRate);
+      if (y <= 0) {
+        setY((y) => -y);
+        setMoveDown(() => true);
       }
     }
-
-    // Clamp position
-    if (newY > maxY) newY = maxY;
-    if (newY < 0) newY = 0;
-
-    // Update state
-    setX(newX);
-    setMoveLeft(newMoveLeft);
-    setY(newY);
-    setMoveDown(newMoveDown);
-
-    // Call next frame
-    timer.current = setTimeout(() => {
-      calculateNextFrame();
-    }, frameTime * 1000);
   }
 
   
