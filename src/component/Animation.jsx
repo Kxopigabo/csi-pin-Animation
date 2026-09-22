@@ -6,6 +6,8 @@ import football from "../assets/img/football.jpg";
 import volleyball from "../assets/img/volleyball.jpg";
 import student from "../assets/img/std_img.jpg";
 
+
+// variable
 const Animation = ({
   fieldWidth,
   fieldHeight,
@@ -13,6 +15,8 @@ const Animation = ({
   keyEvent,
   velocity,
 }) => {
+  
+  
   //default
   const _fieldWidth = fieldWidth || 640;
   const _fieldHeight = fieldHeight || 480;
@@ -27,7 +31,7 @@ const Animation = ({
   const frameRate = 25;
   const frameTime = 1 / frameRate;
   const _ballDiameter = 2 * _ballRadius;
-  const maxX = _fieldWidth - _ballDiameter - 5; 
+  const maxX = _fieldWidth - _ballDiameter - 5;
   const maxY = _fieldHeight - _ballDiameter - 5;
 
   // state
@@ -56,10 +60,9 @@ const Animation = ({
   useEffect(() => {
     if (runing) {
       if (timer.current === null) {
-        timer.current =
-          setTimeout(() => {
-            calculateNextFrame();
-          }, frameTime * 1000);
+        timer.current = setTimeout(() => {
+          calculateNextFrame();
+        }, frameTime * 1000);
       }
     }
     return () => {
@@ -67,6 +70,8 @@ const Animation = ({
       timer.current = null;
     };
   });
+  
+  
   //effect (monitor)
   useEffect(() => {
     // console.log(ballType)
@@ -81,7 +86,10 @@ const Animation = ({
       ballRef.current.style.backgroundImage = `url(${student})`;
   }, [ballType]);
 
+  
+  //movement calculation
   const calculateNextFrame = () => {
+    
     // x axis
     if (moveLeft) {
       // ->
@@ -115,10 +123,7 @@ const Animation = ({
         setMoveDown(() => true);
       }
     }
-  }
-
-  
-  
+  };
 
   return (
     <>
@@ -153,12 +158,15 @@ const Animation = ({
 
         {/* button low */}
         <div className="d-flex justify-content-between mt-2 gap-4">
-          <button className={`btn ${runing ? 'btn-warning' : 'btn-success'}`} onClick={() => setRuning(!runing)}>
-            {runing ? 
+          <button
+            className={`btn ${runing ? "btn-warning" : "btn-success"}`}
+            onClick={() => setRuning(!runing)}
+          >
+            {runing ? (
               <span className="bi bi-pause">&nbsp;Pause</span>
-              :
+            ) : (
               <span className="bi bi-play">&nbsp;Play</span>
-            }
+            )}
           </button>
 
           {/* ball type  */}
@@ -201,4 +209,4 @@ const Animation = ({
   );
 };
 
-export default Animation
+export default Animation;
