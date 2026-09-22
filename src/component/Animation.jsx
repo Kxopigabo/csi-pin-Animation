@@ -6,19 +6,68 @@ import football from "../assets/img/football.jpg";
 import volleyball from "../assets/img/volleyball.jpg";
 import student from "../assets/img/std_img.jpg";
 
-const Animation = ({ fieldWidth, fieldHeight, ballRadius }) => {
+const Animation = ({
+  fieldWidth,
+  fieldHeight,
+  ballRadius,
+  keyEvent,
+  velocity,
+}) => {
   //default
   const _fieldWidth = fieldWidth || 640;
   const _fieldHeight = fieldHeight || 480;
   const _ballRadius = ballRadius || 50;
+  const _keyEvent = keyEvent || null;
+  const _velocity = velocity || 100;
 
   // internal calculation
+  const xVelocity = Math.round(_velocity * Math.sqrt(2));
+  const yVelocity = Math.round(_velocity * Math.sqrt(2));
+
+  const frameRate = 25;
+  const frameTime = 1 / frameRate;
   const _ballDiameter = 2 * _ballRadius;
+  const maxX = _fieldWidth - _ballDiameter - 4; // ลบเส้นขอบ 4px
+  const maxY = _fieldHeight - _ballDiameter - 4;
 
-  const ballRef = useRef();
-
+  // state
   const [ballType, setBallType] = useState("none");
+  const [runing, setRuning] = useState(false);
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
+  const [moveLeft, setMoveLeft] = useState(true);
+  const [moveDown, setMoveDown] = useState(true);
 
+  useEffect(() => {
+    if (_keyEvent != null) {
+      if (_keyEvent === "") setRuning(!runing);
+      else if (_keyEvent.key === "0") setBallType("none");
+      else if (_keyEvent.key === "1") setBallType("basketball");
+      else if (_keyEvent.key === "2") setBallType("football");
+      else if (_keyEvent.key === "3") setBallType("volleyball");
+      else if (_keyEvent.key === "4") setBallType("std");
+    }
+  }, [_keyEvent]);
+
+  // refer
+  const ballRef = useRef();
+  const timer = useRef(null);
+
+  useEffect(() => {
+    if (runing) {
+      if (timer.current === null) {
+        timer.current =
+          setTimeout(() => {
+            calculateNextFrame();
+          }, frameTime * 1000);
+      }
+    }
+    return () => {
+      clearTimeout(timer.current);
+      timer.current = null;
+    };
+  });
+  //effect (monitor)
   useEffect(() => {
     // console.log(ballType)
     if (ballType === "none") ballRef.current.style.backgroundImage = ` none `;
@@ -31,6 +80,70 @@ const Animation = ({ fieldWidth, fieldHeight, ballRadius }) => {
     else if (ballType === "std")
       ballRef.current.style.backgroundImage = `url(${student})`;
   }, [ballType]);
+
+  const calculateNextFrame = () => {
+    // calculate next position
+    let newX = x;
+    let newMoveLeft = moveLeft;
+    let newY = y;
+    let newMoveDown = moveDown;
+
+    // x axis
+    if (moveLeft) {
+      // ->
+      newX = x + xVelocity / frameRate;
+      if (newX >= maxX) {
+        newX = 2 * maxX - newX;
+        newMoveLeft = false;
+      }
+    } else {
+      // <-
+      newX = x - xVelocity / frameRate;
+      if (newX <= 0) {
+        newX = -newX;
+        newMoveLeft = true;
+      }
+    }
+
+    // Clamp position
+    if (newX > maxX) newX = maxX;
+    if (newX < 0) newX = 0;
+
+    // y axis
+    if (moveDown) {
+      // down
+      newY = y + yVelocity / frameRate;
+      if (newY >= maxY) {
+        newY = 2 * maxY - newY;
+        newMoveDown = false;
+      }
+    } else {
+      // up
+      newY = y - yVelocity / frameRate;
+      if (newY <= 0) {
+        newY = -newY;
+        newMoveDown = true;
+      }
+    }
+
+    // Clamp position
+    if (newY > maxY) newY = maxY;
+    if (newY < 0) newY = 0;
+
+    // Update state
+    setX(newX);
+    setMoveLeft(newMoveLeft);
+    setY(newY);
+    setMoveDown(newMoveDown);
+
+    // Call next frame
+    timer.current = setTimeout(() => {
+      calculateNextFrame();
+    }, frameTime * 1000);
+  }
+
+  
+  
 
   return (
     <>
@@ -51,13 +164,13 @@ const Animation = ({ fieldWidth, fieldHeight, ballRadius }) => {
           <div
             className="border border-dark border-1 rounded-circle position-absolute "
             style={{
+              left: `${x}px`,
+              top: `${y}px`,
               width: `${_ballDiameter}px`,
               height: `${_ballDiameter}px`,
               backgroundColor: "lightblue",
               backgroundSize: "cover",
               backgroundPosition: "center",
-              left: "100px",
-              top: "100px",
             }}
             ref={ballRef}
           ></div>
@@ -65,7 +178,13 @@ const Animation = ({ fieldWidth, fieldHeight, ballRadius }) => {
 
         {/* button low */}
         <div className="d-flex justify-content-between mt-2 gap-4">
-          <button className="btn btn-success btn-lg">Play</button>
+          <button className={`btn ${runing ? 'btn-warning' : 'btn-success'}`} onClick={() => setRuning(!runing)}>
+            {runing ? 
+              <span className="bi bi-pause">&nbsp;Pause</span>
+              :
+              <span className="bi bi-play">&nbsp;Play</span>
+            }
+          </button>
 
           {/* ball type  */}
 
@@ -107,4 +226,4 @@ const Animation = ({ fieldWidth, fieldHeight, ballRadius }) => {
   );
 };
 
-export default Animation;
+export default Animation
